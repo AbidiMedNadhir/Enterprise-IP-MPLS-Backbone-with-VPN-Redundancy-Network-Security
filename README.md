@@ -1,374 +1,326 @@
-# 🌐 Secure IP/MPLS Backbone Network — Architecture & Security Project
+# 🌐 Enterprise IP/MPLS Backbone with VPN, Redundancy & Network Security
 
 <div align="center">
 
-![TEK-UP University](https://img.shields.io/badge/TEK--UP_University-SSIR--4--A-0046A0?style=for-the-badge&logo=graduation-cap)
+![TEK-UP University](https://img.shields.io/badge/TEK--UP_University-SSIR--4--A-0046A0?style=for-the-badge)
 ![GNS3](https://img.shields.io/badge/Simulator-GNS3-FF6600?style=for-the-badge&logo=cisco)
 ![Cisco](https://img.shields.io/badge/Cisco-IOS-1BA0D7?style=for-the-badge&logo=cisco)
 ![pfSense](https://img.shields.io/badge/Firewall-pfSense_2.7.0-212121?style=for-the-badge)
 ![Zabbix](https://img.shields.io/badge/Monitoring-Zabbix-D40000?style=for-the-badge)
 ![FreeRADIUS](https://img.shields.io/badge/AAA-FreeRADIUS-003D6B?style=for-the-badge)
+![Ubuntu](https://img.shields.io/badge/OS-Ubuntu_Server-E95420?style=for-the-badge&logo=ubuntu)
 
-**Rapport de Projet — Architecture et Sécurité de Réseau**  
-Spécialité : Sécurité des Systèmes Informatiques et des Réseaux
+*Report on the Design and Deployment of a Secure Network Infrastructure Based on an IP/MPLS Backbone*
+
+**TEK-UP University — SSIR-4-A — Academic Year 2025/2026**
+Supervised by **Mr. Tarek HDIJI**
 
 </div>
 
 ---
 
-## 👥 Équipe
+## 📋 Table of Contents
 
-| Nom | Rôle |
-|-----|------|
-| **Mohamed Nadhir Abidi** | Étudiant — SSIR-4-A |
-| **Moadh Ben Naceur** | Étudiant — SSIR-4-A |
-| **Mohamed Amine Rhimi** | Étudiant — SSIR-4-A |
-
-> **Encadrant :** Mr. Tarek HDIJI — TEK-UP University
-
----
-
-## 📋 Table des matières
-
-- [Vue d'ensemble du projet](#-vue-densemble-du-projet)
-- [Architecture générale](#-architecture-générale)
-- [Chapitre 1 — Backbone VPN-MPLS](#-chapitre-1--backbone-vpn-mpls)
-- [Chapitre 2 — LAN Étendu Redondant](#-chapitre-2--lan-étendu-redondant)
-- [Chapitre 3 — Monitoring, AAA & Sécurité pfSense](#-chapitre-3--monitoring-aaa--sécurité-pfsense)
-- [Plan d'adressage complet](#-plan-dadressage-complet)
-- [Technologies utilisées](#-technologies-utilisées)
-- [Structure du dépôt](#-structure-du-dépôt)
-- [Comment compiler le rapport](#-comment-compiler-le-rapport)
+- [Project Overview](#-project-overview)
+- [Chapter 1 — IP/MPLS Backbone & VPN](#-chapter-1--ipmpls-backbone--vpn)
+- [Chapter 2 — Redundant Extended LAN](#-chapter-2--redundant-extended-lan)
+- [Chapter 3 — Monitoring, AAA & pfSense Security](#-chapter-3--monitoring-aaa--pfsense-security)
+- [Complete IP Addressing Plan](#-complete-ip-addressing-plan)
+- [Technologies & Protocols](#-technologies--protocols)
+- [Key Achievements](#-key-achievements)
+- [References](#-references)
 
 ---
 
-## 🔭 Vue d'ensemble du projet
+## 🔭 Project Overview
 
-Ce projet académique conçoit et déploie une infrastructure réseau d'entreprise **complète et sécurisée**, couvrant trois couches complémentaires :
+This project covers the full design and deployment of a **secure enterprise network infrastructure** structured across four complementary layers:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│              COUCHE SÉCURITÉ                            │
-│   pfSense (WAN / LAN / DMZ)  +  FreeRADIUS (AAA)       │
-├─────────────────────────────────────────────────────────┤
-│              COUCHE SUPERVISION                         │
-│   Zabbix Server  +  SNMPv3  +  Syslog  +  NTP          │
-├─────────────────────────────────────────────────────────┤
-│              COUCHE LAN ÉTENDU                          │
-│   VLAN  +  HSRP  +  EtherChannel  +  DHCP  +  OSPF     │
-├─────────────────────────────────────────────────────────┤
-│              COUCHE BACKBONE                            │
-│   IP/MPLS  +  VRF CYBER  +  OSPF  +  MP-BGP  +  LDP    │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                     SECURITY LAYER                           │
+│        pfSense Firewall (WAN / LAN / DMZ)                    │
+│        FreeRADIUS — AAA Authentication & Authorization       │
+├──────────────────────────────────────────────────────────────┤
+│                   MONITORING LAYER                           │
+│        Zabbix Server — SNMPv3 — Syslog — NTP — IP SLA       │
+├──────────────────────────────────────────────────────────────┤
+│                 EXTENDED LAN LAYER                           │
+│        VLAN Segmentation — HSRP — EtherChannel — DHCP       │
+├──────────────────────────────────────────────────────────────┤
+│                   BACKBONE LAYER                             │
+│        IP/MPLS — VRF CYBER — OSPF — MP-BGP — LDP            │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### Sites du réseau
+### Network Sites
 
-| Identifiant | Rôle | Routeur CE |
-|-------------|------|------------|
-| **Siège 1** | Site principal | CE11 |
-| **Siège 2** | Site principal secondaire | CE21 |
-| **Branche 1** | Site distant | CE12 |
-| **Branche 2** | Site distant | CE22 |
+| Site | Role | CE Router | Loopback |
+|------|------|-----------|----------|
+| **Headquarters 1** | Primary site | CE11 | `172.16.11.11/32` |
+| **Headquarters 2** | Secondary site | CE21 | `172.16.21.21/32` |
+| **Branch 1** | Remote site | CE12 | `172.16.12.12/32` |
+| **Branch 2** | Remote site | CE22 | `172.16.22.22/32` |
 
 ---
 
-## 🏗️ Architecture générale
+## 📦 Chapter 1 — IP/MPLS Backbone & VPN
 
-La topologie repose sur un **Backbone IP/MPLS** avec 2 routeurs Provider (P1, P2), 2 routeurs Provider Edge (PE1, PE2) et 4 routeurs Customer Edge (CE11, CE12, CE21, CE22).
+### Objective
 
-```
-        CE11 (Siège1)          CE21 (Siège2)
-            │  G1/0                │  G1/0
-            │  192.168.1.2         │  192.168.1.6
-            │                      │
-         G3/0│                  G4/0│
-          ┌──┴──────────────────────┴──┐
-          │           PE1              │
-          │       (1.1.1.1/32)         │
-          │  G1/0──────────── G2/0     │
-          └──────┬───────────┬─────────┘
-               P1│           │P2
-          ┌──────┴──┐     ┌──┴──────┐
-          │   P1    │─────│   P2    │
-          │3.3.3.3  │     │4.4.4.4  │
-          └──────┬──┘     └──┬──────┘
-                 │            │
-          ┌──────┴────────────┴──────────┐
-          │           PE2                │
-          │       (2.2.2.2/32)           │
-          │  G3/0──────────── G4/0       │
-          └──────┬───────────────┬───────┘
-              G1/0│           G1/0│
-          192.168.1.10      192.168.1.14
-              │                   │
-        CE12 (Branch1)      CE22 (Branch2)
-```
+Design and deployment of a fully redundant **IP/MPLS Backbone** with VPN isolation using a dedicated VRF instance per client.
 
----
+### Network Roles
 
-## 📦 Chapitre 1 — Backbone VPN-MPLS
+| Role | Devices | Function |
+|------|---------|----------|
+| **Provider (P)** | P1, P2 | Core label switching |
+| **Provider Edge (PE)** | PE1, PE2 | VRF management, MP-BGP peering |
+| **Customer Edge (CE)** | CE11, CE12, CE21, CE22 | Client-side OSPF routing |
 
-### Objectif
+### Protocols
 
-Déploiement d'un **Backbone IP/MPLS** avec VPN et isolation des trafics clients par VRF.
+| Protocol | Scope | Purpose |
+|----------|-------|---------|
+| **OSPF** | All routers | Dynamic routing — Area 0 (backbone) + client areas |
+| **LDP** | P and PE routers | MPLS label distribution |
+| **MP-BGP** | PE1 ↔ PE2 | VPN route exchange between provider edges |
+| **VRF CYBER** | PE1, PE2 | Client traffic isolation |
 
-### Composants
-
-| Rôle | Équipement | Description |
-|------|-----------|-------------|
-| **Provider (P)** | P1, P2 | Cœur du réseau — commutation des labels |
-| **Provider Edge (PE)** | PE1, PE2 | Bordure MPLS — gestion VRF et MP-BGP |
-| **Customer Edge (CE)** | CE11, CE12, CE21, CE22 | Routeurs clients — OSPF côté client |
-
-### Protocoles implémentés
-
-| Protocole | Rôle | Portée |
-|-----------|------|--------|
-| **OSPF** | Routage dynamique interne | Backbone (Area 0) + Sites (Area 11, 12, 21, 22) |
-| **LDP** | Distribution des labels MPLS | Tous les routeurs P et PE |
-| **MP-BGP** | Échange des routes VPN | Entre PE1 et PE2 |
-| **VRF CYBER** | Isolation du trafic client | PE1 et PE2 — interfaces G3/0 et G4/0 |
-
-### VRF configurée
+### VRF Configuration
 
 ```cisco
 ip vrf VPN_CYBER
   rd 100:3
   route-target both 100:3
+
+interface GigabitEthernet3/0
+  ip vrf forwarding VPN_CYBER
+  ip address 192.168.1.1 255.255.255.252
 ```
 
-### Organisation OSPF
+### OSPF Area Design
 
 ```
-Area 0  ─── Backbone (PE1, PE2, P1, P2)
-Area 11 ─── CE11 (Siège 1)   + PE1 G3/0
-Area 21 ─── CE21 (Siège 2)   + PE1 G4/0  → remplacée par Area 11
-Area 12 ─── CE12 (Branch 1)  + PE2 G3/0
-Area 22 ─── CE22 (Branch 2)  + PE2 G4/0
+Area 0  ───  Backbone core  (PE1, PE2, P1, P2)
+Area 11 ───  Headquarters 1 (CE11 + PE1 G3/0)
+Area 11 ───  Headquarters 2 (CE21 + PE1 G4/0)  ← unified with Area 11
+Area 12 ───  Branch 1       (CE12 + PE2 G3/0)
+Area 22 ───  Branch 2       (CE22 + PE2 G4/0)
 ```
 
-> **Note :** L'Area 21 a été remplacée par l'Area 11 pour unifier le domaine OSPF du Siège.
+> **Design decision:** Area 21 was replaced by Area 11 to unify the OSPF domain across both headquarters sites, ensuring consistent routing continuity with pfSense.
 
 ---
 
-## 🔌 Chapitre 2 — LAN Étendu Redondant
+## 🔌 Chapter 2 — Redundant Extended LAN
 
-### Objectif
+### Objective
 
-Déploiement d'un **LAN étendu hiérarchique** avec redondance HSRP, segmentation VLAN et distribution DHCP.
+Deployment of a **three-layer hierarchical LAN** with gateway redundancy, VLAN segmentation, dynamic address allocation and full OSPF integration.
 
-### Modèle hiérarchique
+### Three-Layer Hierarchy
 
 ```
-┌─────────────────────────────────┐
-│  COUCHE CŒUR  →  Backbone MPLS  │
-├─────────────────────────────────┤
-│  DISTRIBUTION →  Fédérateur1    │
-│               →  Fédérateur2    │  ← HSRP + EtherChannel
-├─────────────────────────────────┤
-│  ACCÈS        →  SW1, SW2       │  ← Siège
-│               →  SW3, SW4       │  ← Branches
-└─────────────────────────────────┘
+┌─────────────────────────────────────┐
+│  CORE         →  IP/MPLS Backbone   │
+├─────────────────────────────────────┤
+│  DISTRIBUTION →  Fédérateur1        │
+│               →  Fédérateur2        │  HSRP active/standby + EtherChannel trunk
+├─────────────────────────────────────┤
+│  ACCESS       →  SW1, SW2           │  Headquarters
+│               →  SW3, SW4           │  Branch sites
+└─────────────────────────────────────┘
 ```
 
-### VLANs configurés
+### VLAN Plan
 
-#### Siège principal
+#### Headquarters
 
-| VLAN | Nom | Réseau |
-|------|-----|--------|
+| VLAN | Name | Network |
+|------|------|---------|
 | VLAN 10 | TEKUP1 | `172.16.210.0/24` |
 | VLAN 15 | TEKUP2 | `172.16.215.0/24` |
 | VLAN 20 | Management | `172.16.220.0/24` |
-| VLAN 300 | WAN_OSPF | `192.168.1.44/30` |
+| VLAN 300 | WAN\_OSPF | `192.168.1.44/30` |
 
-#### Branche 1 (CE12)
+#### Branch 1 (CE12)
 
-| VLAN | Nom | Réseau |
-|------|-----|--------|
+| VLAN | Name | Network |
+|------|------|---------|
 | VLAN 201 | Management | `172.16.201.0/24` |
 | VLAN 202 | DATA | `172.16.202.0/24` |
 
-#### Branche 2 (CE22)
+#### Branch 2 (CE22)
 
-| VLAN | Nom | Réseau |
-|------|-----|--------|
+| VLAN | Name | Network |
+|------|------|---------|
 | VLAN 203 | Management | `172.16.203.0/24` |
 | VLAN 204 | DATA | `172.16.204.0/24` |
 
-### Redondance HSRP
+### Gateway Redundancy — HSRP
 
 ```
-VLAN 10 / 15 / 20 :
-  ├── IP Virtuelle (Gateway)   →  1ère adresse du sous-réseau
-  ├── Fédérateur1 (Actif)      →  2ème adresse
-  └── Fédérateur2 (Passif)     →  3ème adresse
+VLANs 10 / 15 / 20 :
+  ├── Virtual IP   →  Default gateway for all hosts
+  ├── Fédérateur1  →  Active router   (higher priority)
+  └── Fédérateur2  →  Standby router  (automatic failover)
 ```
 
-### Services configurés
+### Additional Services
 
-- **EtherChannel** (mode TRUNK) : agrégation de liens entre Fédérateurs
-- **DHCP** : sur Fédérateur1 & 2 pour VLAN 10/15 ; sur CE12/CE22 pour les branches
-- **OSPF** :
-  - `passive-interface default` sur tous les Fédérateurs
-  - Exception : interface VLAN 300 (coût OSPF = 3000)
-- **Liens Trunk** : VLAN natif 20, VLANs autorisés 10, 15, 20, 300
+| Service | Details |
+|---------|---------|
+| **EtherChannel** | TRUNK mode, VLANs 10/15/20/300 allowed |
+| **DHCP** | Fédérateur1 & 2 for VLAN 10/15 — CE12/CE22 for branch VLANs |
+| **OSPF** | `passive-interface default` on Fédérateurs — VLAN 300 active (cost 3000) |
+| **Trunk links** | Native VLAN 20 on all inter-switch links |
 
 ---
 
-## 🔒 Chapitre 3 — Monitoring, AAA & Sécurité pfSense
+## 🔒 Chapter 3 — Monitoring, AAA & pfSense Security
 
-### 3.1 — Supervision avec Zabbix
+### 3.1 — Centralized Monitoring with Zabbix
 
-**Serveur Zabbix** : `172.16.220.250/24` (Ubuntu Server, réseau de Management VLAN 20)
+**Zabbix Server address:** `172.16.220.250/24` — Ubuntu Server on Management VLAN 20
 
-#### Composants déployés
+The Zabbix platform provides real-time supervision of all network devices through SNMPv3, centralized log collection via Syslog, time synchronization via NTP, and end-to-end performance measurement via IP SLA probes deployed on all CE routers.
 
-| Composant | Détail |
-|-----------|--------|
-| Base de données | MySQL |
-| Serveur web | Apache + PHP |
-| Agents | Déployés sur tous les équipements |
-| Protocole | SNMPv3 (authentification MD5) |
-
-#### Équipements supervisés
-
-- Routeurs CE : CE11, CE12, CE21, CE22
-- Commutateurs Layer 2 : SW1, SW2, SW3, SW4
-- Commutateurs Layer 3 : Fédérateur1, Fédérateur2
-
-#### Configuration SNMPv3
+#### SNMPv3 Configuration (applied to all devices)
 
 ```cisco
-snmp-server community SSIR RO
 snmp-server group TEKUP v3 auth
-snmp-server group MYGROUP v3 auth
+snmp-server user TEKUP TEKUP v3 auth md5 SSIR
 snmp-server host 172.16.220.250 version 3 auth TEKUP
-snmp-server user TEKUP MYGROUP v3 auth md5 SSIR
+snmp-server enable traps snmp linkdown linkup
+snmp-server enable traps ospf
+snmp-server enable traps config
 ```
 
-#### Services complémentaires
+#### Syslog & NTP
 
 ```cisco
-! Syslog centralisé
 logging on
 logging 172.16.220.250
 logging trap warning
 
-! Synchronisation NTP
 ntp server 172.16.220.250
+```
 
-! Sondes IP SLA (Branches → Siège)
+#### IP SLA — Branch to Headquarters Probes
+
+```cisco
+! On Branch routers (CE12, CE22)
 ip sla 11
   udp-jitter 192.168.1.2 frequency 300
 ip sla schedule 11 start-time now life forever
+
+! On Headquarters routers (CE11, CE21)
+ip sla responder
 ```
 
 ---
 
-### 3.2 — Service AAA avec FreeRADIUS
+### 3.2 — AAA Authentication with FreeRADIUS
 
-**Serveur FreeRADIUS** : `172.16.220.200/24` (Ubuntu Server, réseau de Management VLAN 20)
+**FreeRADIUS Server address:** `172.16.220.200/24` — Ubuntu Server on Management VLAN 20
 
-#### Méthodes d'authentification
+#### Authentication Methods
 
-| Méthode | Description |
-|---------|-------------|
-| **Méthode 1** | Serveur RADIUS — `172.16.220.200` |
-| **Méthode 2** | Local (fallback) |
-| **Clé partagée** | `VPN_Cyber` |
+| Priority | Method | Description |
+|----------|--------|-------------|
+| **Method 1** | RADIUS Server `172.16.220.200` | Centralized authentication |
+| **Method 2** | Local fallback | Backup in case of server unavailability |
 
-#### Niveaux de privilèges
+#### Privilege Levels
 
-```
-Privilège  1 → Accès lecture seule
-Privilège 10 → Accès intermédiaire
-Privilège 15 → Accès administrateur complet
-```
+| Level | Access Type |
+|-------|------------|
+| Privilege 1 | Read-only access |
+| Privilege 10 | Intermediate operator access |
+| Privilege 15 | Full administrative access |
 
-#### Configuration sur les équipements
+#### Device Configuration
 
 ```cisco
 aaa new-model
 radius-server host 172.16.220.200 key VPN_Cyber
 aaa authentication login default group radius local
 aaa authorization exec default group radius local
+username admin privilege 15 secret <password>
 ```
 
 ---
 
-### 3.3 — Sécurité pfSense (Pare-feu + DMZ)
+### 3.3 — Perimeter Security with pfSense
 
-**pfSense 2.7.0** déployé comme pare-feu périmétrique unique avec trois zones réseau.
+**pfSense 2.7.0** deployed as a single perimeter firewall separating three distinct security zones.
 
-#### Architecture de sécurité
+#### Zone Architecture
 
 ```
-                    ┌──────────────────────┐
-                    │        pfSense        │
-                    │   (pare-feu unique)   │
-          ┌─────────┤  WAN │ LAN │ OPT2    ├──────────┐
-          │         └──────┴─────┴─────────┘          │
-          │                  │                         │
-     CE11 G1/0          Fédérateur1              Zone DMZ
-  192.168.1.2/30     172.16.220.0/24          172.16.255.0/25
-  (Backbone MPLS)   (Réseau Management)
+                    ┌────────────────────────┐
+                    │        pfSense          │
+                    │     2.7.0 Firewall      │
+          ┌─────────┤  OPT1 │  LAN │  OPT2  ├──────────┐
+          │         └───────┴──────┴─────────┘          │
+          │                  │                           │
+    CE11 G1/0          Fédérateur1                  Zone DMZ
+  192.168.1.2/30    172.16.220.0/24            172.16.255.0/25
+  (MPLS Backbone)  (Management Network)        (Exposed Servers)
 ```
 
-#### Interfaces pfSense
+#### Interface Assignment
 
-| Interface | Connexion | Adresse IP |
-|-----------|-----------|------------|
-| **WAN** (OPT1) | Routeur CE11 | `192.168.1.1/30` |
+| Interface | Connected To | IP Address |
+|-----------|-------------|------------|
+| **OPT1 (WAN)** | CE11 router | `192.168.1.1/30` |
 | **LAN** | Fédérateur1 | `172.16.220.1/24` |
-| **OPT2 (DMZ)** | Zone DMZ | `172.16.255.1/25` |
+| **OPT2 (DMZ)** | DMZ servers | `172.16.255.1/25` |
 
-#### Zone DMZ
+#### DMZ — Exposed Services
 
-| Serveur | Service | Réseau |
-|---------|---------|--------|
-| Serveur SMTP | Messagerie | `172.16.255.0/25` |
-| Serveur DNS | Résolution de noms | `172.16.255.0/25` |
-| Serveur WWW | Web | `172.16.255.0/25` |
+| Server | Service | Network | Gateway |
+|--------|---------|---------|---------|
+| SMTP Server | Email | `172.16.255.0/25` | `172.16.255.1` |
+| DNS Server | Name resolution | `172.16.255.0/25` | `172.16.255.1` |
+| WWW Server | Web | `172.16.255.0/25` | `172.16.255.1` |
 
-> **Passerelle DMZ :** `172.16.255.1` (interface OPT2 de pfSense)
-
-#### Politique de sécurité appliquée
+#### Firewall Policy
 
 ```
-✅ AUTORISÉ  :  Siège (VLAN10/15) + Branches (VLAN202/204) → DMZ (SMTP/DNS/WWW)
-✅ AUTORISÉ  :  Admin1 (172.16.220.100) + Admin2 (172.16.220.150) → DMZ (HTTP/HTTPS/SSH/Telnet/ICMP)
-❌ INTERDIT  :  LAN Siège ↔ LAN Branches (communications directes)
+✅ ALLOWED  :  HQ (VLAN10/15) + Branches (VLAN202/204)  →  DMZ (SMTP / DNS / WWW)
+✅ ALLOWED  :  Admin1 (172.16.220.100) + Admin2 (172.16.220.150)  →  DMZ (HTTP/HTTPS/SSH/Telnet/ICMP)
+❌ BLOCKED  :  HQ LAN  ↔  Branch LAN  (direct inter-site communication)
 ```
 
-#### OSPF sur pfSense
+#### OSPF Integration on pfSense
 
 ```
-Area 11 configurée sur les trois interfaces :
-  ├── LAN   → 172.16.220.0/24  (vers Fédérateur1)
-  ├── OPT1  → 192.168.1.0/30   (vers CE11)
-  └── OPT2  → 172.16.255.0/25  (vers Zone DMZ)
+Area 11 — configured on all three interfaces:
+  ├── LAN   →  172.16.220.0/24   (toward Fédérateur1)
+  ├── OPT1  →  192.168.1.0/30    (toward CE11)
+  └── OPT2  →  172.16.255.0/25   (toward DMZ)
 ```
 
 ---
 
-## 📊 Plan d'adressage complet
+## 📊 Complete IP Addressing Plan
 
-### Backbone IP/MPLS
+### MPLS Backbone Links
 
-| Lien | Réseau | Adresse A | Adresse B |
-|------|--------|-----------|-----------|
+| Link | Network | Device A | Device B |
+|------|---------|----------|----------|
 | PE1 – P1 | `10.1.1.0/30` | PE1 G1/0 = `.1` | P1 G2/0 = `.2` |
 | PE1 – P2 | `10.1.1.4/30` | PE1 G2/0 = `.5` | P2 G3/0 = `.6` |
 | PE2 – P2 | `10.1.1.8/30` | PE2 G1/0 = `.9` | P2 G2/0 = `.10` |
 | PE2 – P1 | `10.1.1.12/30` | PE2 G2/0 = `.13` | P1 G3/0 = `.14` |
 | P1 – P2 | `10.1.1.20/30` | P1 G1/0 = `.21` | P2 G1/0 = `.22` |
 
-### Loopbacks
+### Loopback Addresses
 
-| Routeur | Loopback0 |
-|---------|-----------|
+| Router | Loopback0 |
+|--------|-----------|
 | PE1 | `1.1.1.1/32` |
 | PE2 | `2.2.2.2/32` |
 | P1 | `3.3.3.3/32` |
@@ -378,174 +330,118 @@ Area 11 configurée sur les trois interfaces :
 | CE21 | `172.16.21.21/32` |
 | CE22 | `172.16.22.22/32` |
 
-### Liens WAN CE ↔ PE (VRF CYBER)
+### WAN Links — CE to PE (VRF CYBER)
 
-| Lien | Réseau | CE (G1/0) | PE (G3/0 ou G4/0) |
-|------|--------|-----------|-------------------|
+| Link | Network | CE G1/0 | PE Interface |
+|------|---------|---------|--------------|
 | CE11 – PE1 | `192.168.1.0/30` | `.2` | PE1 G3/0 = `.1` |
 | CE21 – PE1 | `192.168.1.4/30` | `.6` | PE1 G4/0 = `.5` |
 | CE12 – PE2 | `192.168.1.8/30` | `.10` | PE2 G3/0 = `.9` |
 | CE22 – PE2 | `192.168.1.12/30` | `.14` | PE2 G4/0 = `.13` |
 
-> ⚠️ **Important :** La plage `192.168.1.0/24` est **entièrement réservée** aux liens WAN CE-PE du Backbone MPLS.
+> ⚠️ The entire `192.168.1.0/24` range is **exclusively reserved** for CE-to-PE WAN links on the MPLS backbone.
 
-### Équipements de management (VLAN 20)
+### Management Network (VLAN 20 — `172.16.220.0/24`)
 
-| Équipement | Adresse IP |
-|-----------|-----------|
-| Fédérateur1 | `172.16.220.2/24` |
-| Fédérateur2 | `172.16.220.3/24` |
-| SW1 | `172.16.220.101/24` |
-| SW2 | `172.16.220.102/24` |
-| Admin1 | `172.16.220.100/24` |
-| Admin2 | `172.16.220.150/24` |
-| Serveur AAA (FreeRADIUS) | `172.16.220.200/24` |
-| Serveur Monitoring (Zabbix) | `172.16.220.250/24` |
-| pfSense (interface LAN) | `172.16.220.1/24` |
+| Device | IP Address |
+|--------|-----------|
+| pfSense LAN | `172.16.220.1` |
+| Fédérateur1 | `172.16.220.2` |
+| Fédérateur2 | `172.16.220.3` |
+| Admin1 | `172.16.220.100` |
+| SW1 | `172.16.220.101` |
+| SW2 | `172.16.220.102` |
+| Admin2 | `172.16.220.150` |
+| FreeRADIUS (AAA) | `172.16.220.200` |
+| Zabbix (Monitoring) | `172.16.220.250` |
 
-### Zone DMZ
+### DMZ Network (`172.16.255.0/25`)
 
-| Équipement | Réseau | Passerelle |
-|-----------|--------|-----------|
-| Serveurs SMTP / DNS / WWW | `172.16.255.0/25` | `172.16.255.1` (pfSense OPT2) |
-
----
-
-## 🛠️ Technologies utilisées
-
-### Simulation & Virtualisation
-
-| Outil | Usage |
-|-------|-------|
-| **GNS3** | Émulation des routeurs et commutateurs Cisco |
-| **GNS3 VM** | Optimisation des performances de simulation |
-| **VMware** | Hébergement des serveurs (Zabbix, FreeRADIUS, pfSense) |
-
-### Équipements réseau
-
-| Type | Modèle | Usage |
-|------|--------|-------|
-| Routeurs | Cisco C700 | CE11, CE12, CE21, CE22, PE1, PE2, P1, P2 |
-| Switch Layer 3 | Cisco 3650-24PS | Fédérateur1, Fédérateur2 |
-| Switch Layer 2 | Cisco 2960-24TT | SW1, SW2, SW3, SW4 |
-
-### Logiciels & Services
-
-| Logiciel | Version | Rôle |
-|---------|---------|------|
-| **pfSense** | 2.7.0 | Pare-feu périmétrique (WAN/LAN/DMZ) |
-| **Zabbix** | LTS | Supervision réseau centralisée (SNMPv3) |
-| **FreeRADIUS** | 3.0 | Serveur AAA (authentification/autorisation) |
-| **MySQL** | — | Base de données Zabbix |
-| **Ubuntu Server** | — | OS des serveurs (Zabbix, FreeRADIUS, DMZ) |
-| **Apache + PHP** | — | Interface web Zabbix |
-
-### Protocoles implémentés
-
-| Protocole | Couche | Usage |
-|-----------|--------|-------|
-| **OSPF** | Réseau | Routage dynamique — Backbone (Area 0) + Sites |
-| **MP-BGP** | Application | Échange de routes VPN entre PE |
-| **LDP** | Réseau | Distribution des labels MPLS |
-| **VRF** | Réseau | Isolation du trafic client (VRF CYBER) |
-| **HSRP** | Réseau | Redondance de passerelle sur les Fédérateurs |
-| **EtherChannel** | Liaison | Agrégation de liens (Trunk) entre Fédérateurs |
-| **SNMPv3** | Application | Supervision réseau avec authentification |
-| **RADIUS** | Application | Authentification centralisée AAA |
-| **SSH v2** | Application | Accès sécurisé aux équipements |
-| **NTP** | Application | Synchronisation temporelle centralisée |
-| **Syslog** | Application | Journalisation centralisée vers Zabbix |
-| **IP SLA** | Application | Mesure de latence/jitter entre sites |
+| Device | Role | Gateway |
+|--------|------|---------|
+| SMTP / DNS / WWW Servers | Exposed services | `172.16.255.1` (pfSense OPT2) |
 
 ---
 
-## 📁 Structure du dépôt
+## 🛠️ Technologies & Protocols
 
-```
-📦 secure-ip-mpls-backbone/
-│
-├── 📄 README.md                     ← Ce fichier
-├── 📄 rapport_corrige.tex           ← Code source LaTeX du rapport complet
-│
-└── 📂 figures/                      ← Captures d'écran des configurations
-    ├── fig01-architecture-vpn-mpls.*
-    ├── fig03-topologie-entreprise.*
-    ├── fig04-interfaces-PE1.*
-    │   ...
-    ├── fig65-interface-admin-zabbix.*
-    ├── fig66-verification-snmpv3-SW4.*
-    ├── fig70-ospf-networks-pfsense.*
-    └── fig71-ospf-interfaces-pfsense.*
-```
+### Simulation Environment
 
----
+| Tool | Purpose |
+|------|---------|
+| **GNS3** | Cisco router and switch emulation |
+| **GNS3 VM** | Performance optimization for heavy topologies |
+| **VMware Workstation** | Hosting of Linux servers (Zabbix, FreeRADIUS, pfSense) |
 
-## 📝 Comment compiler le rapport
+### Network Devices
 
-### Prérequis
+| Type | Model | Instances |
+|------|-------|-----------|
+| Routers | Cisco C700 | CE11, CE12, CE21, CE22, PE1, PE2, P1, P2 |
+| Layer 3 Switch | Cisco 3650-24PS | Fédérateur1, Fédérateur2 |
+| Layer 2 Switch | Cisco 2960-24TT | SW1, SW2, SW3, SW4 |
 
-- **LaTeX** : TeX Live 2022+ ou MiKTeX
-- **Packages requis** : `babel` (french), `graphicx`, `longtable`, `mdframed`, `listings`, `fancyhdr`, `hyperref`
+### Software Stack
 
-### Compilation
+| Software | Version | Role |
+|----------|---------|------|
+| **pfSense** | 2.7.0 | Perimeter firewall — WAN/LAN/DMZ |
+| **Zabbix** | LTS | Centralized network monitoring |
+| **FreeRADIUS** | 3.0 | AAA server — RADIUS authentication |
+| **MySQL** | — | Zabbix backend database |
+| **Ubuntu Server** | LTS | Host OS for all servers |
+| **Apache + PHP** | — | Zabbix web frontend |
 
-```bash
-# Cloner le dépôt
-git clone https://github.com/<votre-username>/secure-ip-mpls-backbone.git
-cd secure-ip-mpls-backbone
+### Protocol Stack
 
-# Compiler le rapport (2 passes pour la table des matières)
-pdflatex rapport_corrige.tex
-pdflatex rapport_corrige.tex
-
-# Ou avec latexmk (recommandé)
-latexmk -pdf rapport_corrige.tex
-```
-
-### Structure du rapport LaTeX
-
-| Fichier image attendu | Figure | Description |
-|-----------------------|--------|-------------|
-| `fig01-architecture-vpn-mpls.*` | Fig. 1.1 | Architecture VPN-MPLS |
-| `fig03-topologie-entreprise.*` | Fig. 1.3 | Topologie réseau complète |
-| `fig65-interface-admin-zabbix.*` | Fig. 3.25 | Dashboard Zabbix |
-| `fig70-ospf-networks-pfsense.*` | Fig. 3.30 | OSPF sur pfSense (Area 11) |
-| `fig71-ospf-interfaces-pfsense.*` | Fig. 3.31 | Interfaces OSPF pfSense |
-
-> Placez toutes vos captures d'écran dans le même répertoire que le fichier `.tex`, avec les noms exacts indiqués ci-dessus.
+| Protocol | Layer | Role |
+|----------|-------|------|
+| **OSPF** | Network | Dynamic routing — backbone + client sites |
+| **MP-BGP** | Application | VPN route distribution between PE routers |
+| **LDP** | Network | MPLS label distribution |
+| **VRF** | Network | Per-client traffic isolation (VRF CYBER) |
+| **HSRP** | Network | Gateway redundancy on distribution layer |
+| **EtherChannel** | Data Link | Link aggregation between Fédérateurs |
+| **SNMPv3** | Application | Authenticated network supervision |
+| **RADIUS** | Application | Centralized AAA |
+| **SSH v2** | Application | Secure device management |
+| **NTP** | Application | Centralized time synchronization |
+| **Syslog** | Application | Centralized log collection |
+| **IP SLA** | Application | Latency, jitter and packet loss measurement |
 
 ---
 
-## 📌 Points clés du projet
+## ✅ Key Achievements
 
-- ✅ **Backbone IP/MPLS** complet avec redondance double sur chaque PE
-- ✅ **VRF CYBER** déployée sur PE1 et PE2 pour l'isolation du trafic
-- ✅ **LAN étendu** avec HSRP, EtherChannel et DHCP sur 4 sites
-- ✅ **Supervision centralisée** Zabbix avec SNMPv3, Syslog et NTP
-- ✅ **AAA** FreeRADIUS avec 3 niveaux de privilèges et fallback local
-- ✅ **pfSense** séparant 3 zones : WAN (CE11), LAN (Fédérateur1), DMZ (SMTP/DNS/WWW)
-- ✅ **OSPF Area 11** commun à pfSense, CE11 et Fédérateurs pour la continuité de routage
-- ✅ **Politique de sécurité** : accès DMZ autorisé depuis Siège + Branches, communication inter-LAN bloquée
+- Full **IP/MPLS Backbone** with double PE-to-P redundancy on every provider edge
+- **VRF CYBER** deployed on PE1 and PE2 ensuring strict client traffic isolation via MP-BGP
+- **Hierarchical LAN** with HSRP gateway redundancy, EtherChannel aggregation and per-VLAN DHCP across 4 sites
+- **Zabbix** monitoring platform with SNMPv3, Syslog and NTP covering all 10 network devices
+- **FreeRADIUS** AAA with 3 privilege levels, RADIUS primary and local fallback authentication
+- **pfSense** firewall enforcing WAN/LAN/DMZ zone separation with stateful packet filtering
+- **OSPF Area 11** unified across pfSense, CE11 and both Fédérateurs for seamless route propagation
+- **Security policy** enforced: DMZ access authorized from all sites, direct inter-LAN traffic blocked
 
 ---
 
-## 📚 Références
+## 📚 References
 
-- RFC 3031 — MPLS Architecture
-- RFC 4364 — BGP/MPLS IP VPNs
+- RFC 3031 — Multiprotocol Label Switching Architecture
+- RFC 4364 — BGP/MPLS IP Virtual Private Networks
 - RFC 2328 — OSPF Version 2
 - RFC 2865 — Remote Authentication Dial In User Service (RADIUS)
-- [Documentation pfSense](https://docs.netgate.com/pfsense/en/latest/)
-- [Documentation Zabbix](https://www.zabbix.com/documentation/current/)
-- [Documentation FreeRADIUS](https://freeradius.org/documentation/)
+- [pfSense Official Documentation](https://docs.netgate.com/pfsense/en/latest/)
+- [Zabbix Official Documentation](https://www.zabbix.com/documentation/current/)
+- [FreeRADIUS Official Documentation](https://freeradius.org/documentation/)
 
 ---
 
 <div align="center">
 
-**TEK-UP University — SSIR-4-A — 2025/2026**  
-*Projet encadré par Mr. Tarek HDIJI*
+**TEK-UP University — SSIR-4-A — 2025/2026**
+Supervised by **Mr. Tarek HDIJI**
 
-![GitHub](https://img.shields.io/badge/GitHub-Rapport_LaTeX-181717?style=flat-square&logo=github)
+![GitHub](https://img.shields.io/badge/Report-PDF_Available-181717?style=flat-square&logo=github)
+![License](https://img.shields.io/badge/License-Academic_Use_Only-blue?style=flat-square)
 
 </div>
