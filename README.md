@@ -2,18 +2,13 @@
 
 <div align="center">
 
-![TEK-UP University](https://img.shields.io/badge/TEK--UP_University-SSIR--4--A-0046A0?style=for-the-badge)
 ![GNS3](https://img.shields.io/badge/Simulator-GNS3-FF6600?style=for-the-badge&logo=cisco)
-![Cisco](https://img.shields.io/badge/Cisco-IOS-1BA0D7?style=for-the-badge&logo=cisco)
 ![pfSense](https://img.shields.io/badge/Firewall-pfSense_2.7.0-212121?style=for-the-badge)
 ![Zabbix](https://img.shields.io/badge/Monitoring-Zabbix-D40000?style=for-the-badge)
 ![FreeRADIUS](https://img.shields.io/badge/AAA-FreeRADIUS-003D6B?style=for-the-badge)
 ![Ubuntu](https://img.shields.io/badge/OS-Ubuntu_Server-E95420?style=for-the-badge&logo=ubuntu)
 
 *Report on the Design and Deployment of a Secure Network Infrastructure Based on an IP/MPLS Backbone*
-
-**TEK-UP University — SSIR-4-A — Academic Year 2025/2026**
-Supervised by **Mr. Tarek HDIJI**
 
 </div>
 
@@ -25,7 +20,6 @@ Supervised by **Mr. Tarek HDIJI**
 - [Chapter 1 — IP/MPLS Backbone & VPN](#-chapter-1--ipmpls-backbone--vpn)
 - [Chapter 2 — Redundant Extended LAN](#-chapter-2--redundant-extended-lan)
 - [Chapter 3 — Monitoring, AAA & pfSense Security](#-chapter-3--monitoring-aaa--pfsense-security)
-- [Complete IP Addressing Plan](#-complete-ip-addressing-plan)
 - [Technologies & Protocols](#-technologies--protocols)
 - [Key Achievements](#-key-achievements)
 - [References](#-references)
@@ -302,64 +296,6 @@ Area 11 — configured on all three interfaces:
   ├── OPT1  →  192.168.1.0/30    (toward CE11)
   └── OPT2  →  172.16.255.0/25   (toward DMZ)
 ```
-
----
-
-## 📊 Complete IP Addressing Plan
-
-### MPLS Backbone Links
-
-| Link | Network | Device A | Device B |
-|------|---------|----------|----------|
-| PE1 – P1 | `10.1.1.0/30` | PE1 G1/0 = `.1` | P1 G2/0 = `.2` |
-| PE1 – P2 | `10.1.1.4/30` | PE1 G2/0 = `.5` | P2 G3/0 = `.6` |
-| PE2 – P2 | `10.1.1.8/30` | PE2 G1/0 = `.9` | P2 G2/0 = `.10` |
-| PE2 – P1 | `10.1.1.12/30` | PE2 G2/0 = `.13` | P1 G3/0 = `.14` |
-| P1 – P2 | `10.1.1.20/30` | P1 G1/0 = `.21` | P2 G1/0 = `.22` |
-
-### Loopback Addresses
-
-| Router | Loopback0 |
-|--------|-----------|
-| PE1 | `1.1.1.1/32` |
-| PE2 | `2.2.2.2/32` |
-| P1 | `3.3.3.3/32` |
-| P2 | `4.4.4.4/32` |
-| CE11 | `172.16.11.11/32` |
-| CE12 | `172.16.12.12/32` |
-| CE21 | `172.16.21.21/32` |
-| CE22 | `172.16.22.22/32` |
-
-### WAN Links — CE to PE (VRF CYBER)
-
-| Link | Network | CE G1/0 | PE Interface |
-|------|---------|---------|--------------|
-| CE11 – PE1 | `192.168.1.0/30` | `.2` | PE1 G3/0 = `.1` |
-| CE21 – PE1 | `192.168.1.4/30` | `.6` | PE1 G4/0 = `.5` |
-| CE12 – PE2 | `192.168.1.8/30` | `.10` | PE2 G3/0 = `.9` |
-| CE22 – PE2 | `192.168.1.12/30` | `.14` | PE2 G4/0 = `.13` |
-
-> ⚠️ The entire `192.168.1.0/24` range is **exclusively reserved** for CE-to-PE WAN links on the MPLS backbone.
-
-### Management Network (VLAN 20 — `172.16.220.0/24`)
-
-| Device | IP Address |
-|--------|-----------|
-| pfSense LAN | `172.16.220.1` |
-| Fédérateur1 | `172.16.220.2` |
-| Fédérateur2 | `172.16.220.3` |
-| Admin1 | `172.16.220.100` |
-| SW1 | `172.16.220.101` |
-| SW2 | `172.16.220.102` |
-| Admin2 | `172.16.220.150` |
-| FreeRADIUS (AAA) | `172.16.220.200` |
-| Zabbix (Monitoring) | `172.16.220.250` |
-
-### DMZ Network (`172.16.255.0/25`)
-
-| Device | Role | Gateway |
-|--------|------|---------|
-| SMTP / DNS / WWW Servers | Exposed services | `172.16.255.1` (pfSense OPT2) |
 
 ---
 
